@@ -345,7 +345,7 @@ def clip_coords(boxes, img_shape):
 
 def bbox_iou(box1, box2, x1y1x2y2=True, GIoU=False, DIoU=False, CIoU=False, eps=1e-7):
     # Returns the IoU of box1 to box2. box1 is 4, box2 is nx4
-    print("box2:&: ", box2)
+   
     box2 = box2.T
 
 
@@ -360,65 +360,51 @@ def bbox_iou(box1, box2, x1y1x2y2=True, GIoU=False, DIoU=False, CIoU=False, eps=
         b2_y1, b2_y2 = box2[1] - box2[3] / 2, box2[1] + box2[3] / 2
 
     # Intersection area
-    print("torch.max(b1_x1, b2_x1): ", torch.max(b1_x1, b2_x1))
-    print("torch.min(b1_x2, b2_x2): ", torch.min(b1_x2, b2_x2))
-    print("torch.max(b1_y1, b2_y1): ", torch.max(b1_y1, b2_y1))
-    print("torch.min(b1_y2, b2_y2): ", torch.min(b1_y2, b2_y2))
+    
     inter = (torch.min(b1_x2, b2_x2) - torch.max(b1_x1, b2_x1)).clamp(0) * \
             (torch.min(b1_y2, b2_y2) - torch.max(b1_y1, b2_y1)).clamp(0)
 
-    print ("inter: ",inter)
+    
 
     # Union Area
-    print ("eps::: ",eps)
+    
 
     w1, h1 = b1_x2 - b1_x1, b1_y2 - b1_y1 + eps
 
-    print("b1_x1::::", b1_x1)
-    print("b1_x2::::", b1_x2)
-    print("b1_y1::::", b1_y1)
-    print("b1_y2::::", b1_y2)
-    print("w1: ", w1)
-    print("h1: ", h1)
+   
 
     w2, h2 = b2_x2 - b2_x1, b2_y2 - b2_y1 + eps
 
 
-    print("b2_x1):::: ", b2_x1)
-    print("b2_x2):::: ", b2_x2)
-    print("b2_y1):::: ", b2_y1)
-    print("b2_y2):::: ", b2_y2)
-    print("w2: ", w2)
-    print("h2: ", h2)
+    
 
     union = w1 * h1 + w2 * h2 - inter + eps
-    print("union: ", union)
+   
 
     iou = inter / union
 
-    print ("inter / union::: ",inter / union)
+   
     if GIoU or DIoU or CIoU:
         cw = torch.max(b1_x2, b2_x2) - torch.min(b1_x1, b2_x1)  # convex (smallest enclosing box) width
-        print("cw::: ", cw)
+       
         ch = torch.max(b1_y2, b2_y2) - torch.min(b1_y1, b2_y1)  # convex height
-        print("ch::: ", ch)
+        
         if CIoU or DIoU:  # Distance or Complete IoU https://arxiv.org/abs/1911.08287v1
             c2 = cw ** 2 + ch ** 2 + eps  # convex diagonal squared
-            print("c2::: ", c2)
+            
             rho2 = ((b2_x1 + b2_x2 - b1_x1 - b1_x2) ** 2 +
                     (b2_y1 + b2_y2 - b1_y1 - b1_y2) ** 2) / 4  # center distance squared
-            print ("rho2::: ",rho2)
+           
             if DIoU:
                 return iou - rho2 / c2  # DIoU
             elif CIoU:  # https://github.com/Zzh-tju/DIoU-SSD-pytorch/blob/master/utils/box/box_utils.py#L47
-                print ("w2 / h2::: ",w2 / h2)
-                print("w1 / h1::: ", w1 / h1)
+                
                 v = (4 / math.pi ** 2) * torch.pow(torch.atan(w2 / h2) - torch.atan(w1 / h1), 2)
-                print("v::: ", v)
+               
                 with torch.no_grad():
                     alpha = v / (v - iou + (1 + eps))
-                    print("alpha::: ", alpha)
-                print ("CIoU = iou - (rho2 / c2 + v * alpha)", iou - (rho2 / c2 + v * alpha))
+                   
+                
                 return iou - (rho2 / c2 + v * alpha)  # CIoU
         else:  # GIoU https://arxiv.org/pdf/1902.09630.pdf
             c_area = cw * ch + eps  # convex area
