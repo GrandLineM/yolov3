@@ -31,9 +31,9 @@ class Detect(nn.Module):
         self.nc = nc  # number of classes
         self.no = nc + 5  # number of outputs per anchor
         self.nl = len(anchors)  # number of detection layers
-        print ("self.nl: ", self.nl)
+        
         self.na = len(anchors[0]) // 2  # number of anchors
-        print("self.na: ", self.na)
+        
         self.grid = [torch.zeros(1)] * self.nl  # init grid
         a = torch.tensor(anchors).float().view(self.nl, -1, 2)
         self.register_buffer('anchors', a)  # shape(nl,na,2)
@@ -81,20 +81,20 @@ class Model(nn.Module):
             self.yaml_file = Path(cfg).name
             with open(cfg) as f:
                 self.yaml = yaml.load(f, Loader=yaml.SafeLoader)  # model dict
-        print ("self.yaml: ",self.yaml)
+        
         # Define model
         ch = self.yaml['ch'] = self.yaml.get('ch', ch)  # input channels
-        print ("input channels: ",ch)
-        print ("nc_yolo: ",nc)
-        print("self.yaml['nc']_yolo: ", self.yaml['nc'])
+       
+       
+      
         if nc and nc != self.yaml['nc']:
             logger.info(f"Overriding model.yaml nc={self.yaml['nc']} with nc={nc}")
             self.yaml['nc'] = nc  # override yaml value
-        print ("anchors_yolo: ",anchors)
+        
         if anchors:
             logger.info(f'Overriding model.yaml anchors with anchors={anchors}')
             self.yaml['anchors'] = round(anchors)  # override yaml value
-        print ("deepcopy(self.yaml)",deepcopy(self.yaml))
+        
         self.model, self.save = parse_model(deepcopy(self.yaml), ch=[ch])  # model, savelist
         self.names = [str(i) for i in range(self.yaml['nc'])]  # default names
         # print([x.shape for x in self.forward(torch.zeros(1, ch, 64, 64))])
@@ -103,13 +103,13 @@ class Model(nn.Module):
         m = self.model[-1]  # Detect()
         if isinstance(m, Detect):
             s = 320  # 2x min stride
-            print ("torch.zeros(1, ch, s, s)).size: ",torch.zeros(1, ch, s, s).size())
+            
             m.stride = torch.tensor([s / x.shape[-2] for x in self.forward(torch.zeros(1, ch, s, s))])  # forward
-            print ("m.stride: ",m.stride)
-            print("anchors_yolo_model_init: ", m.anchors)
-            print ("m.stride.view(-1, 1, 1): ",m.stride.view(-1, 1, 1))
+            
+            
+            
             m.anchors /= m.stride.view(-1, 1, 1)
-            print ("m.anchors: ",m.anchors)
+            
             check_anchor_order(m)
             self.stride = m.stride
             self._initialize_biases()  # only run once
@@ -122,7 +122,7 @@ class Model(nn.Module):
 
     def forward(self, x, augment=False, profile=False):
 
-        print("yolo_model.augment: ", augment)
+        
         if augment:
             img_size = x.shape[-2:]  # height, width
             s = [1, 0.83, 0.67]  # scales
@@ -140,7 +140,7 @@ class Model(nn.Module):
                 y.append(yi)
             return torch.cat(y, 1), None  # augmented inference, train
         else:
-            print ("profile: ",profile)
+            
             return self.forward_once(x, profile)  # single-scale inference, train
 
     def forward_once(self, x, profile=False):
@@ -163,16 +163,10 @@ class Model(nn.Module):
             x = m(x)  # run
 
             if type(x) != list and n_of_layer<10 :
-                print("x_input_yolo_{}: \n".format(n_of_layer), x)
-                print("x_input_yolo.size_{}: ".format(n_of_layer), x.size())
-                print("x_input_yolo_end_{}: ".format(n_of_layer))
-
+                print()
             if len(x) > 1 and n_of_layer<10 :
                 insert_layer = 0
                 for zr in x:
-                    print("x_input_yolo_{}-{}: \n".format(n_of_layer,insert_layer), zr)
-                    print("x_input_yolo.size_{}-{}: ".format(n_of_layer,insert_layer), zr.size())
-                    print("x_input_yolo_end_{}-{}: ".format(n_of_layer,insert_layer))
                     insert_layer+=1
                 insert_layer = 0
             n_of_layer+=1
@@ -183,7 +177,7 @@ class Model(nn.Module):
         if profile:
             print('%.1fms total' % sum(dt))
 
-        print ("return x:::")
+        
         return x
 
     def _initialize_biases(self, cf=None):  # initialize biases into Detect(), cf is class frequency
@@ -246,29 +240,21 @@ def parse_model(d, ch):  # model_dict, input_channels(3)
     logger.info('\nparse_model_logger_info:\n%3s%18s%3s%10s  %-40s%-30s' % ('', 'from', 'n', 'params', 'module', 'arguments'))
 
     anchors, nc, gd, gw = d['anchors'], d['nc'], d['depth_multiple'], d['width_multiple']
-    print("anchors_yolo_parse: ", anchors)
+  
     na = (len(anchors[0]) // 2) if isinstance(anchors, list) else anchors  # number of anchors
-    print ("number of anchors_yolo: ",na)
+  
     no = na * (nc + 5)  # number of outputs = anchors * (classes + 5)
-    print ("no: ",no)
+   
 
     layers, save, c2 = [], [], ch[-1]  # layers, savelist, ch out
-    print ("layers_parse_m: ",layers)
-    print ("layers_save_m: ",save)
-    print ("layers_c2_m: ",c2)
+   
     for i, (f, n, m, args) in enumerate(d['backbone'] + d['head']):  # from, number, module, args
-        print ('i_yolo_parse: ',i)
-        print ('f_yolo_parse: ',f)
-        print ('n_yolo_parse: ',n)
-        print ('m_yolo_parse: ',m," m.type = ",type(m) )
-
-        print ('args_yolo_parse: ',args)
+        
 
         m = eval(m) if isinstance(m, str) else m  # eval strings
 
         for j, a in enumerate(args):
-            print ("j-args: ",j)
-            print("a-args: ", a)
+            
             try:
                 args[j] = eval(a) if isinstance(a, str) else a  # eval strings
                 print ("type eval(a): {}, value: {} ".format(type(eval(a)),eval(a)))
@@ -276,18 +262,17 @@ def parse_model(d, ch):  # model_dict, input_channels(3)
                 pass
 
         n = max(round(n * gd), 1) if n > 1 else n  # depth gain
-        print ("parse_model_n: ",n)
+        
         if m in [Conv, GhostConv, Bottleneck, GhostBottleneck, SPP, DWConv, MixConv2d, Focus, CrossConv, BottleneckCSP,
                  C3, C3TR]:
             c1, c2 = ch[f], args[0]
-            print ("ch[f]: ",ch[f])
-            print("args[0]: ", args[0])
+           
             if c2 != no:  # if not output
-                print ("make_divisible: ")
+                
                 c2 = make_divisible(c2 * gw, 8)
 
             args = [c1, c2, *args[1:]]
-            print("args_after insert: ", args)
+           
             if m in [BottleneckCSP, C3, C3TR]:
                 args.insert(2, n)  # number of repeats
                 n = 1
@@ -296,11 +281,9 @@ def parse_model(d, ch):  # model_dict, input_channels(3)
         elif m is Concat:
             c2 = sum([ch[x] for x in f])
         elif m is Detect:
-            print ("ch_detect_layer: ",ch)
-            print ("[x for x in f]: ",[x for x in f])
+            
             args.append( [ch[x] for x in f])
-            print ("args_detect_layer: ",args)
-            print ("args[1]: ",args[1])
+          
             if isinstance(args[1], int):  # number of anchors
 
                 args[1] = [list(range(args[1] * 2))] * len(f)
@@ -310,23 +293,23 @@ def parse_model(d, ch):  # model_dict, input_channels(3)
             c2 = ch[f] // args[0] ** 2
         else:
             c2 = ch[f]
-        print ("n::: ",n)
+       
         m_ = nn.Sequential(*[m(*args) for _ in range(n)]) if n > 1 else m(*args)  # module
-        print ("m_::",m_)
+        
         t = str(m)[8:-2].replace('__main__.', '')  # module type
-        print ("module_type:",t )
+        
         np = sum([x.numel() for x in m_.parameters()])  # number params
         m_.i, m_.f, m_.type, m_.np = i, f, t, np  # attach index, 'from' index, type, number params
         logger.info('%3s%18s%3s%10.0f  %-40s%-30s' % (i, f, n, np, t, args))  # print
         save.extend(x % i for x in ([f] if isinstance(f, int) else f) if x != -1)  # append to savelist
-        print ("save_parse: ",save)
+        
 
         layers.append(m_)
         if i == 0:
             ch = []
-        print (len(ch)," ch_too: ",ch)
+       
         ch.append(c2)
-        print (len(ch)," ch_after: ",ch)
+       
     return nn.Sequential(*layers), sorted(save)
 
 
