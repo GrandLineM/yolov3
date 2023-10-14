@@ -31,10 +31,10 @@ def torch_distributed_zero_first(local_rank: int):
     """
     if local_rank not in [-1, 0]:
         torch.distributed.barrier()
-        print("local_rank not in [-1,0]")
+       
     yield
     if local_rank == 0:
-        print ("local_rankk==0")
+       
         torch.distributed.barrier()
 
 
@@ -292,16 +292,14 @@ class ModelEMA:
         # Update EMA parameters
         with torch.no_grad():
             self.updates += 1
-            print ("self.updates::: ",self.updates)
+           
             d = self.decay(self.updates)
 
             msd = model.module.state_dict() if is_parallel(model) else model.state_dict()  # model state_dict
             lp=0
             for k, v in self.ema.state_dict().items():
                 if v.dtype.is_floating_point:
-                    print("d_^{}: ".format(lp), d)
-                    print("v.size_{}: ".format(lp), v.size())
-                    print("msd[k].detach()_{}: ".format(lp), msd[k].detach().size())
+                    
                     lp += 1
                     v *= d
                     v += (1. - d) * msd[k].detach()
