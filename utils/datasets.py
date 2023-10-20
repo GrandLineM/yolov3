@@ -121,7 +121,6 @@ class InfiniteDataLoader(torch.utils.data.dataloader.DataLoader):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         object.__setattr__(self, 'batch_sampler', _RepeatSampler(self.batch_sampler))
-        print()
         self.iterator = super().__iter__()
 
     def __len__(self):
@@ -132,7 +131,7 @@ class InfiniteDataLoader(torch.utils.data.dataloader.DataLoader):
     def __iter__(self):
         for i in range(len(self)):
             print("\ni=",i)
-            print("self.iterator: ",self.iterator)
+            #print("self.iterator: ",self.iterator)
             yield next(self.iterator)
 
 
