@@ -125,9 +125,10 @@ def train(hyp, opt, device, tb_writer=None):
             if 0<=kron<=70:
                 len_of_size_tensor = ckpt['model'].state_dict()[param_tensor].size()
 
-                for n_sig, zig in enumerate(ckpt['model'].state_dict()[param_tensor]):
-                    if ckpt['model'].state_dict()[param_tensor].size()[0] == 32:
-                        print("output_conv_2d_{}: ".format(n_sig), zig)
+                #for n_sig, zig in enumerate(ckpt['model'].state_dict()[param_tensor]):
+                    #print ()
+                    #if ckpt['model'].state_dict()[param_tensor].size()[0] == 32:
+                        #print("output_conv_2d_{}: ".format(n_sig), zig)
                         #print("output_conv_.size_{}: ".format(n_sig), zig.size())
                         #print("output_mean_conv_{}: ".format(n_sig), torch.mean(zig))
                 #print("kron={}\n".format(kron) ,param_tensor,"\n",len_of_size_tensor, "\n", ckpt['model'].state_dict()[param_tensor] ,"\n")
@@ -135,7 +136,7 @@ def train(hyp, opt, device, tb_writer=None):
         #            print ("paramsT: ",torch.mean(ckpt['model'].state_dict()[param_tensor]))
         #        pass
 
-        print()
+        #print()
         #print ("hyp.get_anchors_in_train",hyp.get('anchors'))
         model = Model(opt.cfg or ckpt['model'].yaml, ch=3, nc=nc, anchors=hyp.get('anchors')).to(device)  # create
 
@@ -482,8 +483,8 @@ def train(hyp, opt, device, tb_writer=None):
                     #print ("j={} x['lr']: ".format(j),x['lr'])
                     if 'momentum' in x:
                         x['momentum'] = np.interp(ni, xi, [hyp['warmup_momentum'], hyp['momentum']])
-                        print("momentum_in_x: " ,x['momentum'])
-                    else: print("not momentum_in_x:")
+                       
+                    
 
             # Multi-scale
             #print ("opt.multi_scale: ",opt.multi_scale) # - False
@@ -541,7 +542,7 @@ def train(hyp, opt, device, tb_writer=None):
                 mem = 'mem %.3gG' % (torch.cuda.memory_reserved() / 1E9 if torch.cuda.is_available() else 0)  # (GB)
                 s = ('%10s' * 2 + '%10.4g' * 6) % (
                     '%g/%g' % (epoch, epochs - 1), mem, *mloss, targets.shape[0], imgs.shape[-1])
-                print("len(s): ",s)
+                
 
                 pbar.set_description(s)
 
@@ -610,6 +611,7 @@ def train(hyp, opt, device, tb_writer=None):
 
             # Save model
             if (not opt.nosave) or (final_epoch and not opt.evolve):  # if save
+                print('save Model') 
                 ckpt = {'epoch': epoch,
                         'best_fitness': best_fitness,
                         'training_results': results_file.read_text(),
@@ -623,11 +625,15 @@ def train(hyp, opt, device, tb_writer=None):
                 torch.save(ckpt, last)
                 if best_fitness == fi:
                     torch.save(ckpt, best)
+                print('wandb_logger.wandb ',wandb_logger.wandb)
                 if wandb_logger.wandb:
                     if ((epoch + 1) % opt.save_period == 0 and not final_epoch) and opt.save_period != -1:
                         wandb_logger.log_model(
                             last.parent, opt, epoch, fi, best_model=best_fitness == fi)
                 del ckpt
+                #for f in last, best:
+                #    if f.exists():
+                #        strip_optimizer(f)
 
         # end epoch ----------------------------------------------------------------------------------------------------
     # end training
@@ -676,17 +682,17 @@ def train(hyp, opt, device, tb_writer=None):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--weights', type=str, default='', help='initial weights path')     #   runs/train/exp17/weights/best.pt
+    parser.add_argument('--weights', type=str, default='best.pt', help='initial weights path')     #   runs/train/exp17/weights/best.pt
     parser.add_argument('--cfg', type=str, default='models/yolov3.yaml', help='model.yaml path') # models/yolov3.yaml
     parser.add_argument('--data', type=str, default='data/coco128.yaml', help='data.yaml path')
     parser.add_argument('--hyp', type=str, default='data/hyp.scratch.yaml', help='hyperparameters path')
-    parser.add_argument('--epochs', type=int, default=3)
+    parser.add_argument('--epochs', type=int, default=20)
     parser.add_argument('--batch-size', type=int, default=1, help='total batch size for all GPUs')
     parser.add_argument('--img-size', nargs='+', type=int, default=[320, 320], help='[train, test] image sizes')
     parser.add_argument('--rect', action='store_true', help='rectangular training')
     parser.add_argument('--resume', nargs='?', const=True, default=False, help='resume most recent training')
-    parser.add_argument('--nosave', action='store_true', help='only save final checkpoint')
-    parser.add_argument('--notest', action='store_true', help='only test final epoch')
+    parser.add_argument('--nosave',default=False, action='store_true', help='only save final checkpoint')
+    parser.add_argument('--notest', action='store_true', default=True, help='only test final epoch')
     parser.add_argument('--noautoanchor', action='store_true', help='disable autoanchor check')
     parser.add_argument('--evolve', action='store_true', help='evolve hyperparameters')
     parser.add_argument('--bucket', type=str, default='', help='gsutil bucket')
@@ -695,7 +701,7 @@ if __name__ == '__main__':
     parser.add_argument('--device', default='cpu', help='cuda device, i.e. 0 or 0,1,2,3 or cpu')
     parser.add_argument('--multi-scale', action='store_true', help='vary img-size +/- 50%%')
     parser.add_argument('--single-cls', action='store_true', help='train multi-class data as single-class')
-    parser.add_argument('--adam', action='store_true', help='use torch.optim.Adam() optimizer')
+    parser.add_argument('--adam',default=True, action='store_true', help='use torch.optim.Adam() optimizer')
     parser.add_argument('--sync-bn', action='store_true', help='use SyncBatchNorm, only available in DDP mode')
     parser.add_argument('--local_rank', type=int, default=-1, help='DDP parameter, do not modify')
     parser.add_argument('--workers', type=int, default=4, help='maximum number of dataloader workers')
@@ -708,7 +714,7 @@ if __name__ == '__main__':
     parser.add_argument('--label-smoothing', type=float, default=0.0, help='Label smoothing epsilon')
     parser.add_argument('--upload_dataset', action='store_true', help='Upload dataset as W&B artifact table')
     parser.add_argument('--bbox_interval', type=int, default=-1, help='Set bounding-box image logging interval for W&B')
-    parser.add_argument('--save_period', type=int, default=-1, help='Log model after every "save_period" epoch')
+    parser.add_argument('--save_period', type=int, default=1, help='Log model after every "save_period" epoch')
     parser.add_argument('--artifact_alias', type=str, default="latest", help='version of dataset artifact to be used')
     opt = parser.parse_args()
 
