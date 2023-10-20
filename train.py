@@ -610,7 +610,7 @@ def train(hyp, opt, device, tb_writer=None):
             wandb_logger.end_epoch(best_result=best_fitness == fi)
 
             # Save model
-            if (epoch % opt.save_period == 0) (not opt.nosave) or (final_epoch and not opt.evolve):  # if save
+            if ((epoch % opt.save_period == 0) and (not opt.nosave)) or (final_epoch and not opt.evolve):  # if save
                 print('save Model') 
                 ckpt = {'epoch': epoch,
                         'best_fitness': best_fitness,
