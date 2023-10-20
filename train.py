@@ -610,7 +610,7 @@ def train(hyp, opt, device, tb_writer=None):
             wandb_logger.end_epoch(best_result=best_fitness == fi)
 
             # Save model
-            if ((epoch % opt.save_period == 0) and (not opt.nosave)) or (final_epoch and not opt.evolve):  # if save
+            if (epoch!=0 and (epoch % opt.save_period == 0) and (not opt.nosave)) or (final_epoch and not opt.evolve):  # if save
                 print('save Model') 
                 ckpt = {'epoch': epoch,
                         'best_fitness': best_fitness,
@@ -714,7 +714,7 @@ if __name__ == '__main__':
     parser.add_argument('--label-smoothing', type=float, default=0.0, help='Label smoothing epsilon')
     parser.add_argument('--upload_dataset', action='store_true', help='Upload dataset as W&B artifact table')
     parser.add_argument('--bbox_interval', type=int, default=-1, help='Set bounding-box image logging interval for W&B')
-    parser.add_argument('--save_period', type=int, default=10, help='Log model after every "save_period" epoch')
+    parser.add_argument('--save_period', type=int, default=50, help='Log model after every "save_period" epoch')
     parser.add_argument('--artifact_alias', type=str, default="latest", help='version of dataset artifact to be used')
     opt = parser.parse_args()
 
