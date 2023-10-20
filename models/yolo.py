@@ -163,7 +163,7 @@ class Model(nn.Module):
             x = m(x)  # run
 
             if type(x) != list and n_of_layer<10 :
-                print()
+                pass
             if len(x) > 1 and n_of_layer<10 :
                 insert_layer = 0
                 for zr in x:

@@ -18,11 +18,11 @@ backbone:
    [-1, 1, Conv, [128, 3, 2]],   # 3-P2/4
    [-1, 2, Bottleneck, [128]],   # 4 (cv1,cv2)*2
    [-1, 1, Conv, [256, 3, 2]],   # 5-P3/8
-   [-1, 2, Bottleneck, [256]],   # 6 (cv1,cv2)*8
+   [-1, 8, Bottleneck, [256]],   # 6 (cv1,cv2)*8
    [-1, 1, Conv, [512, 3, 2]],   # 7-P4/16
-   [-1, 2, Bottleneck, [512]],   # 8 (cv1,cv2)*8
+   [-1, 8, Bottleneck, [512]],   # 8 (cv1,cv2)*8
    [-1, 1, Conv, [1024, 3, 2]],  # 9-P5/32
-   [-1, 2, Bottleneck, [1024]],  # 10  (cv1,cv2)*4
+   [-1, 4, Bottleneck, [1024]],  # 10  (cv1,cv2)*4
   ]
 
 # YOLOv3 head
